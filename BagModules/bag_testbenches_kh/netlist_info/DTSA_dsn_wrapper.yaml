@@ -1,0 +1,168 @@
+lib_name: bag_testbenches_kh
+cell_name: DTSA_dsn_wrapper
+pins: [ "incm", "VSS", "VDD", "indiff", "inclk", "outdiff", "middiff" ]
+instances:
+  COUTP:
+    lib_name: analogLib
+    cell_name: cap
+    instpins:
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "VOP"
+        num_bits: 1
+  COUTN:
+    lib_name: analogLib
+    cell_name: cap
+    instpins:
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "VON"
+        num_bits: 1
+  E1:
+    lib_name: analogLib
+    cell_name: vcvs
+    instpins:
+      NC+:
+        direction: inputOutput
+        net_name: "inclk"
+        num_bits: 1
+      NC-:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "CLK_B"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VDD"
+        num_bits: 1
+  E0:
+    lib_name: analogLib
+    cell_name: vcvs
+    instpins:
+      NC+:
+        direction: inputOutput
+        net_name: "inclk"
+        num_bits: 1
+      NC-:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "CLK"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  XBALMID:
+    lib_name: analogLib
+    cell_name: ideal_balun
+    instpins:
+      c:
+        direction: inputOutput
+        net_name: "net11"
+        num_bits: 1
+      d:
+        direction: inputOutput
+        net_name: "middiff"
+        num_bits: 1
+      n:
+        direction: inputOutput
+        net_name: "DIN"
+        num_bits: 1
+      p:
+        direction: inputOutput
+        net_name: "DIP"
+        num_bits: 1
+  XBALOUT:
+    lib_name: analogLib
+    cell_name: ideal_balun
+    instpins:
+      c:
+        direction: inputOutput
+        net_name: "net12"
+        num_bits: 1
+      d:
+        direction: inputOutput
+        net_name: "outdiff"
+        num_bits: 1
+      n:
+        direction: inputOutput
+        net_name: "VON"
+        num_bits: 1
+      p:
+        direction: inputOutput
+        net_name: "VOP"
+        num_bits: 1
+  XBALIN:
+    lib_name: analogLib
+    cell_name: ideal_balun
+    instpins:
+      c:
+        direction: inputOutput
+        net_name: "incm"
+        num_bits: 1
+      d:
+        direction: inputOutput
+        net_name: "indiff"
+        num_bits: 1
+      n:
+        direction: inputOutput
+        net_name: "VIN"
+        num_bits: 1
+      p:
+        direction: inputOutput
+        net_name: "VIP"
+        num_bits: 1
+  XDUT:
+    lib_name: bag_testbenches_kh
+    cell_name: dut_model
+    instpins:
+      out:
+        direction: output
+        net_name: "net03"
+        num_bits: 1
+      in:
+        direction: input
+        net_name: "net04"
+        num_bits: 1
+  PIN3:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN0:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN4:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN6:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN1:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN2:
+    lib_name: basic
+    cell_name: opin
+    instpins: {}
+  PIN5:
+    lib_name: basic
+    cell_name: opin
+    instpins: {}

@@ -1,0 +1,12 @@
+lib_name: bag_testbenches_kh
+cell_name: dut_model
+pins: [ "in", "out" ]
+instances:
+  PIN0:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN1:
+    lib_name: basic
+    cell_name: opin
+    instpins: {}

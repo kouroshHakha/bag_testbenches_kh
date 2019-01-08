@@ -1,0 +1,104 @@
+lib_name: bag_testbenches_kh
+cell_name: cmp_overdrive_recovery_tb
+pins: [  ]
+instances:
+  XDUT:
+    lib_name: bag_testbenches_kh
+    cell_name: DTSA_dsn_wrapper
+    instpins:
+      middiff:
+        direction: output
+        net_name: "net2"
+        num_bits: 1
+      VSS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      VDD:
+        direction: inputOutput
+        net_name: "VDD"
+        num_bits: 1
+      outdiff:
+        direction: output
+        net_name: "outdiff"
+        num_bits: 1
+      inclk:
+        direction: input
+        net_name: "inclk"
+        num_bits: 1
+      incm:
+        direction: input
+        net_name: "incm"
+        num_bits: 1
+      indiff:
+        direction: input
+        net_name: "indiff"
+        num_bits: 1
+  VVSS:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "gnd!"
+        num_bits: 1
+  VVDD:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VDD"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  VVCM:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "incm"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  I0:
+    lib_name: analogLib
+    cell_name: gnd
+    instpins:
+      gnd!:
+        direction: inputOutput
+        net_name: "gnd!"
+        num_bits: 1
+  Vinput:
+    lib_name: analogLib
+    cell_name: vpwl
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "indiff"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  Vclk:
+    lib_name: analogLib
+    cell_name: vpulse
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "inclk"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
