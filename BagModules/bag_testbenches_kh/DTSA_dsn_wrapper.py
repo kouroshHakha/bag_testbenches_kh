@@ -41,7 +41,6 @@ class bag_testbenches_kh__DTSA_dsn_wrapper(Module):
                dut_conns=None,  # type: Dict[str, str]
                ):
         # type: (...) -> None
-
         self.replace_instance_master('XDUT', dut_lib, dut_cell, static=True)
 
         # if dut_conns are different from the default, reconnect the terminals
