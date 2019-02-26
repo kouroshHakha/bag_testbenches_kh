@@ -21,9 +21,9 @@ class CTLEMeasurementManager(GenericACMM):
         output_dict = tb_manager.get_dc_gain_max_gain_first_pole(data, ['outdiff'])
         results = dict(
             dc_gain=output_dict['dc_gain_outdiff'],
-            max_gain=output_dict['max_gain_outdiff'],
+            max_gain_ratio=output_dict['max_gain_outdiff']/output_dict['dc_gain_outdiff'],
             first_pole=output_dict['first_pole_outdiff'],
-            ibias=data['ibias'],
+            ibias=np.abs(data['ibias']),
             corners=data['corner'],
         )
 

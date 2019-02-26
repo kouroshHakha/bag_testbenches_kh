@@ -56,6 +56,19 @@ class GenericACTB(ACTB):
     @classmethod
     def _compute_dc_gain_max_gain_first_pole(cls, f_vec, out_arr, freq_idx):
         """
+        General Idea, we have 3 cases:
+            1. normal CTLE operation with a bump
+            2. no zero at low frequency, just like an amplifier
+            3. wierd behavior of going down and then comming back up
+        We find the intersections with c and 0.99*dc_gain
+        in case 1, 1.01*dc_gain is gonna happen before 0.99*dc_gain
+        in case 2, 1.01*dc_gain has no crossings and 0.99*dc_gain has one
+        in case 3, 0.99*dc_gain is gonna happen before 1.01*dc_gain
+        In case 2,3 first pole is going to be w3db, but in case 3 it is 
+        computed assuming 2nd pole onwards are far.
+        
+        Simpler solution is adopted for now
+        
         Parmeters
         ---------
         f_vec : np.ndarray
@@ -95,12 +108,18 @@ class GenericACTB(ACTB):
         for w3db, vout in zip(w3db_flat, out_arr_flat):
             dc_gain = vout[0]
             max_gain = np.max(vout)
+            upper_bound_idx = np.argmax(vout)
+ 
+            # fun_upper = interpolate.interp1d(f_vec, vout-1.01*dc_gain, kind='cubic')
+            # fun_lower = interpolate.interp1d(f_vec, vout-0.99*dc_gain, kind='cubic')
+            # upper_intersect = cls._get_intersect(fun_upper, f_vec[0], f_vec[upper_bound_idx])
+            # lower_intersect = cls._get_intersect(fun_lower, f_vec[0], f_vec[-1])
+            
             # rule of thumb: if there is at list 1% bump the behaviour is like CTLE otherwise it's just w3db
             if (max_gain / dc_gain) <= 1.01:
                 first_pole_list.append(w3db)
             else:
                 # compute the intersection with the theoretical line
-                upper_bound_idx = np.argmax(vout)
                 intersect = dc_gain / np.sqrt(2) * np.sqrt(1 + (max_gain / dc_gain) ** 2)
                 fzero = interpolate.interp1d(f_vec, vout - intersect, kind='cubic')
                 first_pole = cls._get_intersect(fzero, f_vec[0], f_vec[upper_bound_idx])

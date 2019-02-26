@@ -1,0 +1,104 @@
+lib_name: bag_testbenches_kh
+cell_name: photonic_link_AFE_CMP_wrapper
+pins: [ "indiff", "incm", "outdiff", "VDD", "VSS", "outcm", "IBIAS_N_DTSA", "IBIAS_CTLE", "IBIAS_P_DTSA", "CLK", "CLK_B", "ENB_OC" ]
+instances:
+  XBALOUT:
+    lib_name: analogLib
+    cell_name: ideal_balun
+    instpins:
+      c:
+        direction: inputOutput
+        net_name: "outcm"
+        num_bits: 1
+      d:
+        direction: inputOutput
+        net_name: "outdiff"
+        num_bits: 1
+      n:
+        direction: inputOutput
+        net_name: "VON"
+        num_bits: 1
+      p:
+        direction: inputOutput
+        net_name: "VOP"
+        num_bits: 1
+  XBALIN:
+    lib_name: analogLib
+    cell_name: ideal_balun
+    instpins:
+      c:
+        direction: inputOutput
+        net_name: "incm"
+        num_bits: 1
+      d:
+        direction: inputOutput
+        net_name: "indiff"
+        num_bits: 1
+      n:
+        direction: inputOutput
+        net_name: "VIN"
+        num_bits: 1
+      p:
+        direction: inputOutput
+        net_name: "VIP"
+        num_bits: 1
+  PIN12:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN11:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN10:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN7:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN0:
+    lib_name: basic
+    cell_name: ipin
+    instpins: {}
+  PIN5:
+    lib_name: basic
+    cell_name: opin
+    instpins: {}
+  PIN2:
+    lib_name: basic
+    cell_name: opin
+    instpins: {}
+  PIN6:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN9:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN4:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN3:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  PIN8:
+    lib_name: basic
+    cell_name: iopin
+    instpins: {}
+  XDUT:
+    lib_name: bag_testbenches_kh
+    cell_name: dut_model
+    instpins:
+      out:
+        direction: output
+        net_name: "net11"
+        num_bits: 1
+      in:
+        direction: input
+        net_name: "net12"
+        num_bits: 1

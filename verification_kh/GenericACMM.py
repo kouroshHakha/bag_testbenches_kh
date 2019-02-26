@@ -84,7 +84,7 @@ class GenericACMM(MeasurementManager):
         results = dict(
             dc_gain=output_dict['gain_outdiff'],
             f3db=1/2/np.pi*output_dict['w3db_outdiff'],
-            ibias=data['ibias'],
+            ibias=np.abs(data['ibias']),
             corners=data['corner'],
         )
         self.overall_results.update(**results)
@@ -121,9 +121,10 @@ class GenericACMM(MeasurementManager):
         )
         self.overall_results.update(**results)
 
-    def add_plot(self, state, data, y_axis, x_axis='freq', ax=None, title=None, save=True, show=False):
+    def add_plot(self, state, data, y_axis, x_axis='freq', ax=None, title=None, log_axis= 'x', save=True, show=False):
         """
         this function should plot the data and maybe save it if needed. It depends on the MeasurementManager subclass.
+        For more comlpex ploting function it should be overwritten and use state variable for conditioning
         :param state:
         :param data:
         :param y_axis:
@@ -132,9 +133,11 @@ class GenericACMM(MeasurementManager):
         :param title:
         :param save:
         :param show:
+        :param log_axis: 'x'|'y'|'both'|'none'
         :return:
         """
 
+        functions_dict = {'x': plt.semilogx, 'y': plt.semilogx, 'both': plt.loglog, 'none': plt.plot}
         #TODO: Unfinished
 
         if ax is None:
@@ -150,8 +153,8 @@ class GenericACMM(MeasurementManager):
 
         # for values in zip(combos):
         plt.grid()
-        plt.plot(np.log(data[x_axis]), np.abs(data[y_axis][0]), label='ff')
-        plt.plot(np.log(data[x_axis]), np.abs(data[y_axis][1]), label='tt')
+        functions_dict[log_axis](data[x_axis], np.abs(data[y_axis][0]), label='ff')
+        functions_dict[log_axis](data[x_axis], np.abs(data[y_axis][1]), label='tt')
         plt.ylabel(y_axis)
         plt.xlabel(x_axis)
         if save:
@@ -159,5 +162,6 @@ class GenericACMM(MeasurementManager):
             if os.path.isfile(fname):
                 os.remove(fname)
             plt.savefig(fname, dpi=200)
+            plt.close()
         if show:
             plt.show()

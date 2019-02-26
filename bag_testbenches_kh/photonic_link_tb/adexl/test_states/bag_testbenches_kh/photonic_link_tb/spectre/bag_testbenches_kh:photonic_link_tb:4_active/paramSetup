@@ -1,0 +1,7 @@
+"_DEXPR_20" (noise_start fields "VAR(\"fstart\")")
+"_DEXPR_21" (noise_stop fields "VAR(\"fstop\")")
+"_DEXPR_22" (noise_dec fields "VAR(\"fndec\")")
+"_DEXPR_23" (tran_stop fields "VAR(\"tstop\")")
+"_DEXPR_24" (ac_start fields "VAR(\"fstart\")")
+"_DEXPR_25" (ac_stop fields "VAR(\"fstop\")")
+"_DEXPR_26" (ac_dec fields "VAR(\"fndec\")")
