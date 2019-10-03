@@ -9,6 +9,8 @@ __pycache__
 *.log.*
 IPOPT.out
 
+*.oa-
+
 # misc BAG files
 BAG_server_port.txt
 BAG_sim_server_port.txt

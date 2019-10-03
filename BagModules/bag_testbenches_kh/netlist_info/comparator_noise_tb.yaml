@@ -1,0 +1,148 @@
+lib_name: bag_testbenches_kh
+cell_name: comparator_noise_tb
+pins: [  ]
+instances:
+  I0:
+    lib_name: analogLib
+    cell_name: gnd
+    instpins:
+      gnd!:
+        direction: inputOutput
+        net_name: "gnd!"
+        num_bits: 1
+  VVIN:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VIN"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  VVIP:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VIP"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  VVSS:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "gnd!"
+        num_bits: 1
+  VVDD:
+    lib_name: analogLib
+    cell_name: vdc
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "VDD"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  VCLK:
+    lib_name: analogLib
+    cell_name: vpulse
+    instpins:
+      PLUS:
+        direction: inputOutput
+        net_name: "clk"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  Eclk:
+    lib_name: analogLib
+    cell_name: vcvs
+    instpins:
+      NC+:
+        direction: inputOutput
+        net_name: "clk"
+        num_bits: 1
+      NC-:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "clk_in"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+  Eclkb:
+    lib_name: analogLib
+    cell_name: vcvs
+    instpins:
+      NC+:
+        direction: inputOutput
+        net_name: "clk"
+        num_bits: 1
+      NC-:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "clkb_in"
+        num_bits: 1
+      MINUS:
+        direction: inputOutput
+        net_name: "VDD"
+        num_bits: 1
+  CLN:
+    lib_name: analogLib
+    cell_name: cap
+    instpins:
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "VON"
+        num_bits: 1
+  CLP:
+    lib_name: analogLib
+    cell_name: cap
+    instpins:
+      MINUS:
+        direction: inputOutput
+        net_name: "VSS"
+        num_bits: 1
+      PLUS:
+        direction: inputOutput
+        net_name: "VOP"
+        num_bits: 1
+  XDUT:
+    lib_name: bag_testbenches_kh
+    cell_name: dut_model
+    instpins:
+      out:
+        direction: output
+        net_name: "net2"
+        num_bits: 1
+      in:
+        direction: input
+        net_name: "net3"
+        num_bits: 1

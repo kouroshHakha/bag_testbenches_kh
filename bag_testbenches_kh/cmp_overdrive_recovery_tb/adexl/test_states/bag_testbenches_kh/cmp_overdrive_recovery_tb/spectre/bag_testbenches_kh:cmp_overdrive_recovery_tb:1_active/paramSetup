@@ -1,1 +1,2 @@
+"_DEXPR_27" (tran_strobeperiod options "VAR(\"tr\")")
 "_EXPR_5" (tran_stop fields "(VAR(\"c_wait\")+2)*VAR(\"Tper\")")

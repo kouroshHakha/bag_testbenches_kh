@@ -42,6 +42,236 @@ class TIATBM(TestbenchManager):
                 for key, val in sim_outputs.items():
                     tb.add_output(key, val)
 
+    def get_gain_new(self, data, output_name, fig_loc=None):
+        if not isinstance(output_name, List):
+            output_names = [output_name]
+        else:
+            output_names = output_name
+
+        result_list = list()
+        axis_names = ['corner', 'freq']
+
+        for name in output_names:
+            gain_list = list()
+            sweep_vars = data['sweep_params'][name]
+            swp_corner = ('corner' in sweep_vars)
+            output_corner = data[name]
+            if not swp_corner:
+                corner_list = [self.env_list[0]]
+                sweep_vars = ['corner'] + sweep_vars
+                output_corner = output_corner[None, :]
+            else:
+                corner_list = data['corner'].tolist()
+
+            order = [sweep_vars.index(swp) for swp in axis_names]
+            output_corner = np.transpose(output_corner, axes=order)
+
+            for corner, output  in zip(corner_list, output_corner):
+                gain_list.append(float(np.abs(output)[0]))
+                if fig_loc:
+                    freq = data['freq']
+                    plt.semilogx(freq, 20*np.log10(np.abs(output)))
+                    plt.savefig(os.path.join(fig_loc, 'gain_only_{}_{}.png'.format(name, corner)), dpi=200)
+                    plt.grid()
+                    plt.close()
+
+            result_list.append(dict(
+                corner=corner_list,
+                gain=gain_list,
+            ))
+
+        if not isinstance(output_name, List):
+            return result_list[0]
+        else:
+            return result_list
+
+    def get_R_and_f3db_new(self, data, output_name, fig_loc=None):
+
+        if not isinstance(output_name, List):
+            output_names = [output_name]
+        else:
+            output_names = output_name
+
+        result_list = list()
+        axis_names = ['corner', 'freq']
+
+        for name in output_names:
+            gain_list, f3db_list = list(), list()
+            sweep_vars = data['sweep_params'][name]
+            swp_corner = ('corner' in sweep_vars)
+            output_corner = data[name]
+            if not swp_corner:
+                corner_list = [self.env_list[0]]
+                sweep_vars = ['corner'] + sweep_vars
+                output_corner = output_corner[None, :]
+            else:
+                corner_list = data['corner'].tolist()
+
+            order = [sweep_vars.index(swp) for swp in axis_names]
+            output_corner = np.transpose(output_corner, axes=order)
+
+            for corner, output  in zip(corner_list, output_corner):
+                freq = data['freq']
+                index = corner_list.index(corner)
+                gain, f3db = self._compute_gain_and_f3db_new(freq, output)
+                gain_list.append(gain)
+                f3db_list.append(f3db)
+                if fig_loc:
+                    plt.semilogx(freq, 20*np.log10(np.abs(output)))
+                    plt.savefig(os.path.join(fig_loc, 'gain_{}_{}.png'.format(name, corner)), dpi=200)
+                    plt.grid()
+                    plt.close()
+
+            result_list.append(dict(
+                corner=corner_list,
+                gain=gain_list,
+                f3db=f3db_list,
+            ))
+
+        if not isinstance(output_name, List):
+            return result_list[0]
+        else:
+            return result_list
+
+
+    def _compute_gain_and_f3db_new(self, f_vec, output_vec):
+        gain_vec = np.abs(output_vec)
+        gain_dc = gain_vec[0]
+
+        gain_log = 20 * np.log10(gain_vec)
+        gain_dc_log_3db = 20 * np.log10(gain_dc) - 3
+
+        # find first index at which gain goes below gain_log 3db
+        diff_arr = gain_log - gain_dc_log_3db
+        idx_arr = np.argmax(diff_arr < 0)
+        freq_log = np.log10(f_vec)
+        freq_log_max = freq_log[idx_arr]
+
+        fun = interp.interp1d(freq_log, diff_arr, kind='cubic', copy=False, assume_sorted=True)
+        f3db = 10.0 ** (self._get_intersect(fun, freq_log[0], freq_log_max))
+
+        return float(gain_dc), float(f3db)
+
+    def get_tset_new(self, data, output_name, input_name, tot_err, gain_list, fig_loc=None):
+        axis_names = ['corner', 'time']
+
+        tset_list = list()
+        sweep_vars = data['sweep_params'][output_name]
+        swp_corner = ('corner' in sweep_vars)
+        output_corner = data[output_name]
+        input_corner = data[input_name]
+        if not swp_corner:
+            corner_list = [self.env_list[0]]
+            sweep_vars = ['corner'] + sweep_vars
+            output_corner = output_corner[None, :]
+            input_corner = input_corner[None, :]
+        else:
+            corner_list = data['corner'].tolist()
+
+        order = [sweep_vars.index(swp) for swp in axis_names]
+        output_corner = np.transpose(output_corner, axes=order)
+        input_corner = np.transpose(input_corner, axes=order)
+
+        for corner, v_output, v_input, gain  in \
+                zip(corner_list, output_corner, input_corner, gain_list):
+            time = data['time']
+            tset = self._compute_tset_new(time, v_output, v_input, tot_err, gain, fig_loc)
+            tset_list.append(tset)
+
+            if fig_loc:
+                plt.semilogx(time, v_output)
+                plt.savefig(os.path.join(fig_loc, 'transient_output_{}.png'.format(corner)), dpi=200)
+                plt.grid()
+                plt.close()
+
+        result = dict(
+            corner = corner_list,
+            tset = tset_list,
+        )
+
+        return result
+
+    def _compute_tset_new(self, t, vout, vin, tot_err, gain, fig_loc=None):
+        if fig_loc:
+            plt.figure()
+            plt.plot(t, [1+tot_err]*len(t), 'r--')
+            plt.plot(t, [1-tot_err]*len(t), 'r--')
+
+        y = np.abs((vout - vout[0]) / gain / 2 / (vin[-1] - vin[0]))
+
+        if fig_loc:
+            plt.plot(t, y)
+            plt.savefig(os.path.join(fig_loc, 'tran_debug.png'), dpi=200)
+            plt.close()
+
+        last_idx = np.where(y < 1.0 - tot_err)[0][-1]
+        last_max_vec = np.where(y > 1.0 + tot_err)[0]
+        if last_max_vec.size > 0 and last_max_vec[-1] > last_idx:
+            last_idx = last_max_vec[-1]
+            last_val = 1.0 + tot_err
+        else:
+            last_val = 1.0 - tot_err
+
+        if last_idx == t.size - 1:
+            return t[-1]
+        f = interp.InterpolatedUnivariateSpline(t, y - last_val)
+        t0 = t[last_idx]
+        t1 = t[last_idx + 1]
+        tset = self._get_intersect(f, t0, t1)
+        return tset
+
+
+    def get_integrated_noise_new(self,  data, output_name, bandwidth_list, fig_loc):
+        if not isinstance(output_name, list):
+            output_names = [output_name]
+        else:
+            output_names = output_name
+
+        result_list = list()
+        axis_names = ['corner', 'freq']
+
+        for name in output_names:
+            integ_noise_list = list()
+            sweep_vars = data['sweep_params'][name]
+            swp_corner = ('corner' in sweep_vars)
+            output_corner = data[name]
+            if not swp_corner:
+                corner_list = [self.env_list[0]]
+                sweep_vars = ['corner'] + sweep_vars
+                output_corner = output_corner[None, :]
+            else:
+                corner_list = data['corner'].tolist()
+
+            order = [sweep_vars.index(swp) for swp in axis_names]
+            output_corner = np.transpose(output_corner, axes=order)
+
+            for corner, output, bw  in zip(corner_list, output_corner, bandwidth_list):
+                freq = data['freq']
+                integ_noise = self._compute_integrated_noise_new(freq, output, bw)
+                integ_noise_list.append(integ_noise)
+
+                if fig_loc:
+                    plt.semilogx(freq, np.abs(output))
+                    plt.savefig(os.path.join(fig_loc, 'noise_{}_{}.png'.format(name, corner)), dpi=200)
+                    plt.grid()
+                    plt.close()
+
+            result_list.append(dict(
+                corner=corner_list,
+                integ_noise=integ_noise_list,
+            ))
+
+        if not isinstance(output_name, list):
+            return result_list[0]
+        else:
+            return result_list
+
+    def _compute_integrated_noise_new(self, f_vec, density, bw):
+        noise_fun = interp.interp1d(f_vec, density**2, kind='cubic')
+        integ_noise = integ.quad(noise_fun, f_vec[0], bw)[0]
+        return integ_noise**0.5
+
+
     @classmethod
     def get_R_and_f3db(cls, data, output_list, output_dict=None):
         # type: (Dict[str, Any], List[str], Optional[Dict[str, Any]]) -> Dict[str, Any]
@@ -73,7 +303,6 @@ class TIATBM(TestbenchManager):
             gain_arr, f3db_arr = cls._compute_R_and_f3db(f_vec, np.abs(out_arr), freq_idx)
             cls.record_array(output_dict, data, gain_arr, 'R_TIA_' + out_name, new_swp_params)
             cls.record_array(output_dict, data, f3db_arr, 'f3db_' + out_name, new_swp_params)
-
         return output_dict
 
     @classmethod
@@ -222,8 +451,7 @@ class TIATBM(TestbenchManager):
         for density, bw in zip(out_density_arr.reshape([-1, out_density_arr.shape[-1]]),
                                bw_arr.reshape([-1, bw_arr.shape[-1]])):
             noise_fun = interp.interp1d(f_vec, density**2, kind='cubic')
-            integ_noise_list.append(integ.quad(noise_fun, f_vec[0], bw)[0])
-
+            integ_noise_list.append(integ.quad(noise_fun, f_vec[0], bw[0])[0])
         return np.sqrt(integ_noise_list)
 
     @classmethod
@@ -244,6 +472,7 @@ class TIATBM(TestbenchManager):
             if plot_flag:
                 plt.plot(t, y)
                 plt.savefig('tset_debug.png', dpi=200)
+                plt.close()
 
             last_idx = np.where(y < 1.0 - tot_err)[0][-1]
             last_max_vec = np.where(y > 1.0 + tot_err)[0]

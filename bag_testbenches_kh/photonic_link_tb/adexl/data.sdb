@@ -99,6 +99,12 @@
 					<dependentTest omitted="0">bag_testbenches_kh:photonic_link_tb:4</dependentTest>
 				</dependentTests>
 			</var>
+			<var>tr
+				<value></value>
+				<dependentTests>
+					<dependentTest omitted="0">bag_testbenches_kh:photonic_link_tb:4</dependentTest>
+				</dependentTests>
+			</var>
 		</vars>
 		<disabledtests></disabledtests>
 		<overwritehistoryname>Interactive.0</overwritehistoryname>
@@ -119,6 +125,7 @@
 				<value></value>
 			</plottingoption>
 		</plottingoptions>
+		<jobpolicyname>ADE XL Default</jobpolicyname>
 	</active>
 	<history>History
 		<historyentry assemblerOrExplorer="adexl" roOrView="view">Interactive.0

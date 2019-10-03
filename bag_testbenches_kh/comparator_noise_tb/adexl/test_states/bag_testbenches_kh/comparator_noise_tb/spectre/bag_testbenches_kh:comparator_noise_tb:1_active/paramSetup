@@ -1,0 +1,3 @@
+"_DEXPR_28" (tran_strobeperiod options "VAR(\"tr\")")
+"_EXPR_1" (tran_stop fields "100*VAR(\"Tper\")")
+"_EXPR_2" (tran_noisefmax fields "10/VAR(\"Tper\")")

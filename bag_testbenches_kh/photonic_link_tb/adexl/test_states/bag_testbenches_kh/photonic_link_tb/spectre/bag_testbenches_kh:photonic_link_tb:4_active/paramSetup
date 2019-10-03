@@ -5,3 +5,4 @@
 "_DEXPR_24" (ac_start fields "VAR(\"fstart\")")
 "_DEXPR_25" (ac_stop fields "VAR(\"fstop\")")
 "_DEXPR_26" (ac_dec fields "VAR(\"fndec\")")
+"_DEXPR_31" (tran_strobeperiod options "VAR(\"tr\")")

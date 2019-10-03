@@ -59,61 +59,149 @@ class PhotonicLinkAFERXMM(MeasurementManager):
         return done, next_state, self.overall_results
 
     def post_process_diff(self, state, data, tb_manager):
-        ax = plt.gca()
-        self.add_plot(state, data, 'outpTIA', ax=ax, title='R_tia', function=lambda x: 20*np.log10(2*np.abs(x)), save=False)
-        self.add_plot(state, data, 'outdiff', ax=ax, title='R_tia_ctle', function=lambda x: 20 * np.log10(np.abs(x)),
-                      save=True)
-        self.add_plot(state, data, 'input_noise', title='input_noise', function=lambda x: np.abs(x))
-        self.add_plot(state, data, 'out_tran', x_axis='time', log_axis='none', title='out_tran',
-                      function=lambda x: x)
+        # ax = plt.gca()
+        # self.add_plot(state, data, 'outpTIA', ax=ax, title='R_tia', function=lambda x: 20*np.log10(2*np.abs(x)), save=False)
+        # self.add_plot(state, data, 'outdiff', ax=ax, title='R_tia_ctle', function=lambda x: 20 * np.log10(np.abs(x)),
+        #               save=True)
+        # self.add_plot(state, data, 'input_noise', title='input_noise', function=lambda x: np.abs(x))
+        # self.add_plot(state, data, 'out_tran', x_axis='time', log_axis='none', title='out_tran',
+        #               function=lambda x: x)
 
-        ac_res = tb_manager.get_R_and_f3db(data, ['outdiff'])
-        # tran_res = tb_manager.get_tset(data, out_name='out_tran', input_name='in_tran',
-        #                                tot_err=self.specs['tset_tol'], gain=ac_res['R_TIA_outdiff'], plot_flag=False)
-        eye_height = self.get_eye_height_approximation(data, ['out_tran'], tstop=tb_manager.specs['sim_vars']['tstop'],
-                                                       Tbit=self.specs['Tbit'])
-        f3db_list = ac_res['f3db_outdiff']
-        noise_res = tb_manager.get_integrated_noise(data, ['input_noise'], f3db_list)
+        ac_res = tb_manager.get_R_and_f3db_new(data, 'outdiff', fig_loc=self.data_dir)
+        # if you want to run settling time simulation (i.e. inject a small signal step and measure the settling time to
+        # the total desired percentage error value uncomment the tb_manager.get_test command, comment the get_eye_height
+        # command and also in the yaml file make sure the pulse width is 500ms. Also don't
+
+        tran_res = None
+        # tran_res = tb_manager.get_tset_new(data, output_name='out_tran', input_name='in_tran',
+        #                                    tot_err=self.specs['tset_tol'], gain_list=ac_res['gain'], plot_loc='./tset_debug.png')
+
+        eye_char = None
+        # if you want the eye_height make sure the settling time is commented and pulse width in the yaml file is Tbit.
+        eye_char = self.get_eye_height_approximation(data, 'out_tran', tstop=tb_manager.specs['sim_vars']['tstop'],
+                                                     Tbit=self.specs['Tbit'], tmargin=self.specs['tmargin'], fig_loc=self.data_dir)
+        f3db_list = ac_res['f3db']
+        input_noise, output_noise = tb_manager.get_integrated_noise_new(data, ['input_noise', 'output_noise'], f3db_list, fig_loc=self.data_dir)
+
+        if data['ibias'].shape:
+            ibias=  np.abs(data['ibias']).tolist()
+        else:
+            ibias = [np.abs(data['ibias']).tolist()]
 
         output = dict(
-            r_afe=ac_res['R_TIA_outdiff'],
+            corner=ac_res['corner'],
+            r_afe=ac_res['gain'],
             f3db=f3db_list,
-            rms_input_noise=noise_res['rms_input_noise'],
-            ibias=np.abs(data['ibias']),
-            # tset=tran_res['tset_out_tran'],
-            eye_height=eye_height,
+            rms_input_noise=input_noise['integ_noise'],
+            rms_output_noise=output_noise['integ_noise'],
+            ibias=ibias,
         )
+
+        if tran_res:
+            output['tset'] = tran_res['tset']
+
+        if eye_char:
+            eye_level_thickness_ratio = []
+            for height in eye_char['height']:
+                if height == 0:
+                    eye_level_thickness_ratio.append(1)
+                else:
+                    index = eye_char['height'].index(height)
+                    eye_level_thickness_ratio.append(eye_char['level_thickness'][index]/eye_char['height'][index])
+
+            output.update(dict(eye_height=eye_char['height'],
+                               eye_span_height=eye_char['span_height'],
+                               eye_level_thickness = eye_char['level_thickness'],
+                               eye_level_thickness_ratio = eye_level_thickness_ratio,
+                               ))
 
         self.overall_results.update(**output)
 
-    def get_eye_height_approximation(self, data, out_names, tstop, Tbit, thresh=2e-5):
-        # ignoring outer sweeps like corners
-        for out_name in out_names:
-            out = np.abs(data[out_name])
+    def get_eye_height_approximation(self, data, output_name, tstop, Tbit, tmargin, thresh=2e-5, fig_loc=None):
+        axis_names = ['corner', 'time']
+        height_list, span_height_list, level_thickness_list = list(), list(), list()
+
+        sweep_vars = data['sweep_params'][output_name]
+        swp_corner = ('corner' in sweep_vars)
+        output_corner = data[output_name]
+        if not swp_corner:
+            corner_list = [self.env_list[0]]
+            sweep_vars = ['corner'] + sweep_vars
+            output_corner = output_corner[None, :]
+        else:
+            corner_list = data['corner'].tolist()
+
+        order = [sweep_vars.index(swp) for swp in axis_names]
+        output_corner = np.transpose(output_corner, axes=order)
+
+        for corner, v_output  in zip(corner_list, output_corner):
+            if fig_loc:
+                plt.plot(data['time'], v_output)
+                plt.savefig(os.path.join(fig_loc, 'tran_out_{}'.format(corner)), dpi=200)
+                plt.close()
+
+            out = np.abs(v_output)
             time_max_out = data['time'][np.argmax(out)]
             time_max_out = min(time_max_out, Tbit)
 
             f_out = interp.interp1d(data['time'], out, kind='cubic')
 
-            eye_height = f_out(time_max_out)
-            v = eye_height
+            # compute the main eye height
             sample_time = time_max_out + Tbit
+            eye_level_thickness=0
             while sample_time < tstop:
                 v = f_out(sample_time)
-                eye_height -= abs(v)
+                eye_level_thickness+=abs(v)
                 sample_time += Tbit
 
-            return eye_height
+            eye_height = f_out(time_max_out) - eye_level_thickness
+            if eye_height < 0 :
+                eye_height = 0
+
+            # compute the left marginal eye height
+            left_eye_height = f_out(time_max_out-tmargin)
+            sample_time = time_max_out - tmargin + Tbit
+            while sample_time < tstop:
+                v = f_out(sample_time)
+                left_eye_height-=abs(v)
+                sample_time += Tbit
+
+            # compute the right marginal eye height
+            right_eye_height = f_out(time_max_out+tmargin)
+            sample_time = time_max_out + tmargin + Tbit
+            while sample_time < tstop:
+                v = f_out(sample_time)
+                right_eye_height-=abs(v)
+                sample_time += Tbit
+
+            # the overall eye_span_height is going to be the minimum of the right and left one
+            eye_span_height = min(left_eye_height, right_eye_height)
+            if eye_span_height < 0:
+                eye_span_height = 0
+
+            height_list.append(float(eye_height))
+            span_height_list.append(float(eye_span_height))
+            level_thickness_list.append(float(eye_level_thickness))
+
+        eye_char = dict(
+            corner=corner_list,
+            height=height_list,
+            span_height=span_height_list,
+            level_thickness=level_thickness_list,
+        )
+
+        return eye_char
 
 
     def post_process_cm(self, state, data, tb_manager):
-        self.add_plot(state, data, 'outcm', title='cm_cm', function=lambda x: 20 * np.log10(np.abs(x)))
-        self.add_plot(state, data, 'outdiff', title='cm_diff', function=lambda x: 20 * np.log10(np.abs(x)))
-        ac_res = tb_manager.get_gain(data, ['outcm', 'outdiff'])
+        # self.add_plot(state, data, 'outcm', title='cm_cm', function=lambda x: 20 * np.log10(np.abs(x)))
+        # self.add_plot(state, data, 'outdiff', title='cm_diff', function=lambda x: 20 * np.log10(np.abs(x)))
+        # outcm_res, outdiff_res = tb_manager.get_R_and_f3db_new(data, ['outcm', 'outdiff'], fig_loc=self.data_dir)
+        outcm_res, outdiff_res = tb_manager.get_gain_new(data, ['outcm', 'outdiff'], fig_loc=self.data_dir)
         output = dict(
-            cmcm_gain=ac_res['gain_outcm'],
-            cmdm_gain=ac_res['gain_outdiff'],
-            cmrr=self.overall_results['r_afe']/ac_res['gain_outcm'],
+            cmcm_gain=outcm_res['gain'],
+            cmdm_gain=outdiff_res['gain'],
+            cmrr=(np.array(self.overall_results['r_afe'])/np.array(outcm_res['gain'])).tolist(),
         )
         self.overall_results.update(**output)
 

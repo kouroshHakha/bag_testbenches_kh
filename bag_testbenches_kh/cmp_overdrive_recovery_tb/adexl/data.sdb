@@ -63,12 +63,6 @@
 				<value>10p</value>
 				<dependentTests></dependentTests>
 			</var>
-			<var enabled="1">tf
-				<value>10</value>
-				<dependentTests>
-					<dependentTest omitted="0">bag_testbenches_kh:cmp_overdrive_recovery_tb:1</dependentTest>
-				</dependentTests>
-			</var>
 			<var enabled="1">Tper
 				<value>2n</value>
 				<dependentTests>
